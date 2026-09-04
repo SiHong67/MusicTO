@@ -1,0 +1,11 @@
+{
+  "name": "MusicTO - Tryouts Scouting",
+  "description": "Music tryouts scouting system with station QR check-ins, evaluation remarks, and instrument tryout videos.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
