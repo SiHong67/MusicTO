@@ -4,6 +4,8 @@ import {
   StationId,
   StationEvaluation,
   STATIONS,
+  ThemePreference,
+  InstructorSession,
 } from './types';
 import {
   getStoredMembers,
@@ -19,13 +21,81 @@ import { StationQRCard } from './components/StationQRCard';
 import { EvaluationScreen } from './components/EvaluationScreen';
 import { StationQRScannerModal } from './components/StationQRScannerModal';
 import { CandidateRegistrationModal } from './components/CandidateRegistrationModal';
-import { Bell, Radio, CheckCircle2 } from 'lucide-react';
+import { InstructorLockScreen } from './components/InstructorLockScreen';
+import { Radio } from 'lucide-react';
 
 export default function App() {
   const [members, setMembers] = useState<Member[]>(() => getStoredMembers());
   const [currentView, setCurrentView] = useState<MainView>('members');
   const [activeStationId, setActiveStationId] = useState<StationId>('drums');
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>('mem-1');
+
+  // Theme state: default to 'dark' or persisted preference
+  const [theme, setTheme] = useState<ThemePreference>(() => {
+    try {
+      const savedTheme = localStorage.getItem('musicto_theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        return savedTheme;
+      }
+    } catch {}
+    return 'dark';
+  });
+
+  // Instructor Authentication Session: Gate app access behind password 'musicto123'
+  const [session, setSession] = useState<InstructorSession>(() => {
+    try {
+      const savedSession = localStorage.getItem('musicto_session');
+      if (savedSession) {
+        const parsed = JSON.parse(savedSession);
+        if (parsed?.authenticated) {
+          return parsed;
+        }
+      }
+    } catch {}
+    return { authenticated: false };
+  });
+
+  // Apply theme class to <html> / documentElement
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    try {
+      localStorage.setItem('musicto_theme', theme);
+    } catch {}
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const handleUnlock = (department: StationId | 'general') => {
+    const newSession: InstructorSession = {
+      authenticated: true,
+      department,
+      loggedInAt: new Date().toISOString(),
+    };
+    setSession(newSession);
+    try {
+      localStorage.setItem('musicto_session', JSON.stringify(newSession));
+    } catch {}
+
+    // If instructor unlocked for a specific department, route to their station
+    if (department !== 'general') {
+      setActiveStationId(department);
+      setCurrentView('station');
+    }
+  };
+
+  const handleLockApp = () => {
+    setSession({ authenticated: false });
+    try {
+      localStorage.removeItem('musicto_session');
+    } catch {}
+  };
 
   // Modals
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -149,8 +219,19 @@ export default function App() {
   const selectedMember =
     members.find((m) => m.id === selectedMemberId) || members[0];
 
+  // If instructor has not authenticated, present the password lock screen
+  if (!session.authenticated) {
+    return (
+      <InstructorLockScreen
+        onUnlock={handleUnlock}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#050507] text-gray-100 flex flex-col selection:bg-indigo-500 selection:text-white font-sans antialiased">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#050507] text-slate-900 dark:text-gray-100 flex flex-col selection:bg-indigo-500 selection:text-white font-sans antialiased transition-colors duration-200">
       {/* Global Navigation Bar */}
       <HeaderNavigation
         currentView={currentView}
@@ -159,20 +240,24 @@ export default function App() {
         onOpenScanner={() => handleOpenScannerForMember()}
         activeStationId={activeStationId}
         onResetData={handleResetData}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        instructorDept={session.department}
+        onLockApp={handleLockApp}
       />
 
       {/* Live Remarks Broadcast Notification Toast */}
       {liveNotification && (
         <div className="fixed top-18 right-4 z-50 animate-bounce">
-          <div className="bg-[#0F0F16] border border-indigo-500/50 shadow-[0_0_20px_rgba(79,70,229,0.35)] rounded-xl px-4 py-3 flex items-center gap-3 max-w-sm backdrop-blur-md">
-            <div className="w-8 h-8 rounded-lg bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400 shrink-0">
+          <div className="bg-white dark:bg-[#0F0F16] border border-indigo-500/50 shadow-lg dark:shadow-[0_0_20px_rgba(79,70,229,0.35)] rounded-xl px-4 py-3 flex items-center gap-3 max-w-sm backdrop-blur-md">
+            <div className="w-8 h-8 rounded-lg bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-500 dark:text-green-400 shrink-0">
               <Radio className="w-4 h-4 animate-pulse shadow-[0_0_5px_#22c55e]" />
             </div>
             <div className="overflow-hidden">
-              <p className="text-xs font-mono font-bold text-white uppercase tracking-wider truncate">
+              <p className="text-xs font-mono font-bold text-slate-900 dark:text-white uppercase tracking-wider truncate">
                 {liveNotification.message}
               </p>
-              <p className="text-[10px] text-gray-400 font-mono mt-0.5">
+              <p className="text-[10px] text-slate-500 dark:text-gray-400 font-mono mt-0.5">
                 Live sync broadcast to all audition stations
               </p>
             </div>
@@ -214,11 +299,11 @@ export default function App() {
             <div className="max-w-md mx-auto px-4 mb-2 flex items-center justify-between">
               <button
                 onClick={() => setCurrentView('members')}
-                className="text-xs font-mono uppercase tracking-wider font-semibold text-gray-400 hover:text-white transition-colors"
+                className="text-xs font-mono uppercase tracking-wider font-semibold text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white transition-colors"
               >
                 ← Back to Overview
               </button>
-              <span className="text-xs font-mono uppercase tracking-wider text-indigo-400 font-bold">
+              <span className="text-xs font-mono uppercase tracking-wider text-indigo-600 dark:text-indigo-400 font-bold">
                 Station Signs
               </span>
             </div>

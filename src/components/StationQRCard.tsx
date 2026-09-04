@@ -62,7 +62,7 @@ export const StationQRCard: React.FC<StationQRCardProps> = ({ initialStationId =
     <div className="flex flex-col items-center justify-center p-4 w-full max-w-md mx-auto animate-fadeIn">
       {/* Station Selector Pills */}
       <div className="w-full mb-6">
-        <label className="block text-[10px] font-bold text-gray-400 uppercase font-mono tracking-widest mb-2.5 text-center">
+        <label className="block text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase font-mono tracking-widest mb-2.5 text-center">
           SELECT STATION QR CODE
         </label>
         <div className="grid grid-cols-3 gap-2">
@@ -76,7 +76,7 @@ export const StationQRCard: React.FC<StationQRCardProps> = ({ initialStationId =
                 className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono uppercase transition-all border ${
                   isSelected
                     ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_12px_rgba(79,70,229,0.4)] font-bold'
-                    : 'bg-[#0F0F16] hover:bg-[#12121A] text-gray-400 border-white/10 hover:text-white'
+                    : 'bg-white hover:bg-slate-100 dark:bg-[#0F0F16] dark:hover:bg-[#12121A] text-slate-600 dark:text-gray-400 border-slate-200 dark:border-white/10 hover:text-slate-900 dark:hover:text-white shadow-xs'
                 }`}
               >
                 <StationIcon stationId={st.id} size={13} />
@@ -91,18 +91,18 @@ export const StationQRCard: React.FC<StationQRCardProps> = ({ initialStationId =
       <div
         ref={cardRef}
         id="station-qr-card"
-        className="w-full bg-[#0F0F16] border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col items-center shadow-2xl relative"
+        className="w-full bg-white dark:bg-[#0F0F16] border border-slate-200 dark:border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col items-center shadow-md dark:shadow-2xl relative"
       >
         {/* Top Logo Bar */}
-        <div className="flex items-center gap-2 mb-6 bg-[#12121A] px-4 py-1.5 rounded-full border border-white/10">
-          <Volume2 className="w-4 h-4 text-indigo-400" />
-          <span className="text-xs font-mono uppercase tracking-widest font-bold text-gray-200">
+        <div className="flex items-center gap-2 mb-6 bg-slate-100 dark:bg-[#12121A] px-4 py-1.5 rounded-full border border-slate-200 dark:border-white/10">
+          <Volume2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <span className="text-xs font-mono uppercase tracking-widest font-bold text-slate-800 dark:text-gray-200">
             MusicTO
           </span>
         </div>
 
         {/* QR Code Container */}
-        <div className="w-64 h-64 sm:w-72 sm:h-72 bg-white rounded-2xl p-4 flex items-center justify-center shadow-[0_0_30px_rgba(79,70,229,0.2)] mb-6 transition-transform">
+        <div className="w-64 h-64 sm:w-72 sm:h-72 bg-white rounded-2xl p-4 flex items-center justify-center shadow-lg border border-slate-100 dark:border-transparent dark:shadow-[0_0_30px_rgba(79,70,229,0.2)] mb-6 transition-transform">
           {qrDataUrl ? (
             <img
               src={qrDataUrl}
@@ -110,7 +110,7 @@ export const StationQRCard: React.FC<StationQRCardProps> = ({ initialStationId =
               className="w-full h-full object-contain rounded-xl"
             />
           ) : (
-            <div className="animate-pulse w-full h-full bg-slate-100 rounded-xl flex items-center justify-center text-gray-500 font-mono text-xs">
+            <div className="animate-pulse w-full h-full bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-mono text-xs">
               Generating QR...
             </div>
           )}
@@ -118,8 +118,8 @@ export const StationQRCard: React.FC<StationQRCardProps> = ({ initialStationId =
 
         {/* Station Name */}
         <div className="flex items-center justify-center mb-2">
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight uppercase">
-            {currentStation.name}
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight uppercase">
+            {currentStation.name} Station
           </h2>
         </div>
       </div>
@@ -147,13 +147,13 @@ export const StationQRCard: React.FC<StationQRCardProps> = ({ initialStationId =
         <button
           id="btn-print-qr-code"
           onClick={handlePrint}
-          className="w-full bg-[#12121A] hover:bg-[#1A1A24] text-gray-300 font-mono uppercase font-medium py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs border border-white/10 transition-all"
+          className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-[#12121A] dark:hover:bg-[#1A1A24] text-slate-700 dark:text-gray-300 font-mono uppercase font-medium py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs border border-slate-200 dark:border-white/10 transition-all"
         >
-          <Printer className="w-4 h-4 text-indigo-400" />
+          <Printer className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           <span>Print Station Signboard</span>
         </button>
 
-        <p className="text-[10px] text-gray-500 text-center font-mono uppercase tracking-wider">
+        <p className="text-[10px] text-slate-500 dark:text-gray-500 text-center font-mono uppercase tracking-wider">
           Scan this station sign to check in
         </p>
       </div>

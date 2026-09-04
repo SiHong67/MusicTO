@@ -2,7 +2,15 @@ export type StationId = 'drums' | 'vocals' | 'bass' | 'guitars' | 'keyboard' | '
 
 export type TrafficLightRating = 'green' | 'yellow' | 'red';
 
-export type FollowUpStatus = 'going_through' | 'finished';
+export type FollowUpStatus = 'not_started' | 'going_through' | 'finished';
+
+export type ThemePreference = 'dark' | 'light';
+
+export interface InstructorSession {
+  authenticated: boolean;
+  department?: StationId | 'general';
+  loggedInAt?: string;
+}
 
 export interface StationConfig {
   id: StationId;

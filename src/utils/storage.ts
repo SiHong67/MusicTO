@@ -105,7 +105,7 @@ export function exportMembersToCSV(members: Member[]): void {
       `"${m.name}"`,
       m.age,
       `"${m.cg}"`,
-      `"${m.followUpStatus === 'finished' ? 'Finished Follow Up' : 'Going Through Follow Up'}"`,
+      `"${m.followUpStatus === 'finished' ? 'Finished Follow Up' : m.followUpStatus === 'not_started' ? 'Have Not Started' : 'Going Through Follow Up'}"`,
       `"${m.currentStation || ''}"`,
       `"${scoutedStations}"`,
       m.evaluations.drums?.trafficLight || '',

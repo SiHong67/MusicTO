@@ -139,7 +139,7 @@ export const INITIAL_MEMBERS: Member[] = [
     name: 'Dave',
     age: 20,
     cg: 'AZ1',
-    followUpStatus: 'finished',
+    followUpStatus: 'not_started',
     primaryStation: 'drums',
     checkedInStations: ['drums'],
     currentStation: 'drums',
