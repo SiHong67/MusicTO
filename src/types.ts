@@ -56,6 +56,7 @@ export interface Member {
   videos?: PersonVideo[];
   email?: string;
   phone?: string;
+  telegramHandle?: string;
   experienceLevel?: 'beginner' | 'intermediate' | 'advanced';
   notes?: string;
 }

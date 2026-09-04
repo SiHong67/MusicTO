@@ -1,7 +1,7 @@
 import { Member, StationId, StationEvaluation, StudentSession } from '../types';
 import { INITIAL_MEMBERS } from '../data/mockMembers';
 
-const STORAGE_KEY = 'musicto_tryouts_members_v1';
+const STORAGE_KEY = 'musicto_tryouts_members_v2';
 const STUDENT_SESSION_KEY = 'musicto_student_session';
 const CHANNEL_NAME = 'musicto_tryouts_sync';
 
@@ -19,8 +19,20 @@ export function getStoredMembers(): Member[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_MEMBERS));
-      return INITIAL_MEMBERS;
+      // Migrate any custom created members from v1 if present
+      let customMembers: Member[] = [];
+      const oldRaw = localStorage.getItem('musicto_tryouts_members_v1');
+      if (oldRaw) {
+        try {
+          const oldParsed: Member[] = JSON.parse(oldRaw);
+          customMembers = oldParsed.filter(
+            (m) => !INITIAL_MEMBERS.some((im) => im.id === m.id)
+          );
+        } catch {}
+      }
+      const combined = [...INITIAL_MEMBERS, ...customMembers];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(combined));
+      return combined;
     }
     const parsed: Member[] = JSON.parse(raw);
     // Ensure every member has a videos array, and inject sample videos if missing
@@ -29,6 +41,7 @@ export function getStoredMembers(): Member[] {
       const videos = m.videos && m.videos.length > 0 ? m.videos : initial?.videos || [];
       return {
         ...m,
+        telegramHandle: m.telegramHandle || initial?.telegramHandle,
         videos,
       };
     });

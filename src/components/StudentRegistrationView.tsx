@@ -31,15 +31,10 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [cg, setCg] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [telegramHandle, setTelegramHandle] = useState('');
   const [primaryStation, setPrimaryStation] = useState<StationId>(
     pendingStationId || 'keyboard'
   );
-  const [secondaryStations, setSecondaryStations] = useState<StationId[]>([]);
-  const [experienceLevel, setExperienceLevel] = useState<
-    'beginner' | 'intermediate' | 'advanced'
-  >('intermediate');
   const [notes, setNotes] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLookupMode, setIsLookupMode] = useState(false);
@@ -49,16 +44,8 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
     ? STATIONS.find((s) => s.id === pendingStationId)
     : null;
 
-  const toggleSecondaryStation = (stId: StationId) => {
-    if (stId === primaryStation) return;
-    setSecondaryStations((prev) =>
-      prev.includes(stId) ? prev.filter((id) => id !== stId) : [...prev, stId]
-    );
-  };
-
   const handlePrimaryStationChange = (stId: StationId) => {
     setPrimaryStation(stId);
-    setSecondaryStations((prev) => prev.filter((id) => id !== stId));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -72,6 +59,9 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
 
     const parsedAge = parseInt(age, 10) || 19;
     const cleanCg = (cg.trim() || 'General').toUpperCase();
+    const cleanTelegram = telegramHandle.trim()
+      ? (telegramHandle.trim().startsWith('@') ? telegramHandle.trim() : `@${telegramHandle.trim()}`)
+      : undefined;
 
     const newMemberId = `mem-${Date.now()}`;
     const initialCheckedIn = pendingStationId ? [pendingStationId] : [];
@@ -81,12 +71,11 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
       name: name.trim(),
       age: parsedAge,
       cg: cleanCg,
-      phone: phone.trim() || undefined,
-      email: email.trim() || undefined,
+      telegramHandle: cleanTelegram,
+      phone: cleanTelegram,
       followUpStatus: 'not_started',
       primaryStation,
-      secondaryStations,
-      experienceLevel,
+      secondaryStations: [],
       notes: notes.trim() || undefined,
       checkedInStations: initialCheckedIn,
       currentStation: pendingStationId || undefined,
@@ -113,7 +102,8 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
         (m) =>
           m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           m.cg.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (m.phone && m.phone.includes(searchQuery))
+          (m.telegramHandle && m.telegramHandle.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (m.phone && m.phone.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : existingMembers.slice(0, 5);
 
@@ -131,9 +121,6 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
                 <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
                   Music Tryouts
                 </h1>
-                <p className="text-xs font-mono text-indigo-600 dark:text-indigo-400 font-semibold tracking-wide">
-                  Candidate Self-Registration
-                </p>
               </div>
             </div>
 
@@ -147,7 +134,7 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
           </div>
 
           <p className="text-xs sm:text-sm text-slate-600 dark:text-gray-400 leading-relaxed">
-            Welcome to the tryouts! Enter your details below to activate your Tryout Pass and check in to audition stations.
+            Welcome to the tryouts!
           </p>
 
           {pendingStation && (
@@ -268,11 +255,11 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
               </div>
             </div>
 
-            {/* CG & Phone */}
+            {/* CG & Telegram Handle */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300 mb-1.5">
-                  Care Group / Cell Group (CG) <span className="text-red-500">*</span>
+                  CG <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="student-reg-cg"
@@ -287,38 +274,23 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300 mb-1.5">
-                  Mobile / WhatsApp Number
+                  Telegram Handle
                 </label>
                 <input
-                  id="student-reg-phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="e.g. 9123 4567"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-white/15 bg-slate-50 dark:bg-[#12121B] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  id="student-reg-telegram"
+                  type="text"
+                  value={telegramHandle}
+                  onChange={(e) => setTelegramHandle(e.target.value)}
+                  placeholder="@handle"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-white/15 bg-slate-50 dark:bg-[#12121B] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
                 />
               </div>
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300 mb-1.5">
-                Email Address <span className="text-[10px] text-slate-500 font-normal lowercase">(optional for updates)</span>
-              </label>
-              <input
-                id="student-reg-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. mark@example.com"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-white/15 bg-slate-50 dark:bg-[#12121B] text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
             </div>
 
             {/* Primary Department / Station */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300 mb-2">
-                Primary Station of Interest <span className="text-red-500">*</span>
+                What are you interested in? <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {STATIONS.map((st) => {
@@ -357,77 +329,17 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
               </div>
             </div>
 
-            {/* Secondary Stations */}
+            {/* Musical Background */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300 mb-1.5">
-                Secondary Station(s) to Tryout
-                <span className="text-[10px] text-slate-500 font-normal ml-1">
-                  (select all that apply)
-                </span>
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {STATIONS.filter((s) => s.id !== primaryStation).map((st) => {
-                  const isSelected = secondaryStations.includes(st.id);
-                  return (
-                    <button
-                      key={st.id}
-                      type="button"
-                      onClick={() => toggleSecondaryStation(st.id)}
-                      className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all flex items-center gap-1.5 ${
-                        isSelected
-                          ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold'
-                          : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5'
-                      }`}
-                    >
-                      <StationIcon name={st.icon} className="w-3 h-3" />
-                      <span>{st.name}</span>
-                      {isSelected && <Check className="w-3 h-3 text-indigo-500" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Experience Level */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300 mb-1.5">
-                Instrument Experience Level
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['beginner', 'intermediate', 'advanced'] as const).map((lvl) => {
-                  const isSelected = experienceLevel === lvl;
-                  return (
-                    <button
-                      key={lvl}
-                      type="button"
-                      onClick={() => setExperienceLevel(lvl)}
-                      className={`py-2 px-2 rounded-xl border text-center text-xs font-bold capitalize transition-all ${
-                        isSelected
-                          ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm'
-                          : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#12121A] text-slate-700 dark:text-gray-300 hover:bg-slate-100'
-                      }`}
-                    >
-                      {lvl}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Musical Background / Notes */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300 mb-1.5">
-                Musical Background / Brief Notes
-                <span className="text-[10px] text-slate-500 font-normal ml-1">
-                  (e.g., years played, songs known, grade exams)
-                </span>
+                Musical Background
               </label>
               <textarea
                 id="student-reg-notes"
                 rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g. Played keyboard for 3 years, knows Bethel/Elevation chords..."
+                placeholder="Share your musical background..."
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-white/15 bg-slate-50 dark:bg-[#12121B] text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
               />
             </div>

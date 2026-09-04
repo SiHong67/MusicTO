@@ -102,12 +102,27 @@ export const AllMembersView: React.FC<AllMembersViewProps> = ({
     // Rating / Scouted filter
     if (filterRating !== 'all') {
       if (filterRating === 'scouted') {
-        const isScouted = evals.some((e) => e.scouted);
-        if (!isScouted) return false;
+        if (filterStation !== 'all') {
+          const stEval = member.evaluations[filterStation];
+          if (!stEval?.scouted) return false;
+        } else {
+          const isScouted = evals.some((e) => e.scouted);
+          if (!isScouted) return false;
+        }
       } else {
-        // Traffic light rating (green, yellow, red)
-        const hasColor = evals.some((e) => e.trafficLight === filterRating);
-        if (!hasColor) return false;
+        // Traffic light rating (green, yellow, red) - strictly exclusive
+        if (filterStation !== 'all') {
+          const stEval = member.evaluations[filterStation];
+          if (!stEval || stEval.trafficLight !== filterRating) {
+            return false;
+          }
+        } else {
+          // When viewing all stations, strictly only show candidates whose rated evaluations match this color
+          const ratedEvals = evals.filter((e) => Boolean(e.trafficLight));
+          if (ratedEvals.length === 0) return false;
+          const isStrictlyThisRating = ratedEvals.every((e) => e.trafficLight === filterRating);
+          if (!isStrictlyThisRating) return false;
+        }
       }
     }
 
@@ -454,6 +469,11 @@ export const AllMembersView: React.FC<AllMembersViewProps> = ({
                       <span className="bg-slate-100 dark:bg-[#12121A] text-indigo-600 dark:text-indigo-300 border border-slate-200 dark:border-white/10 font-mono text-xs font-bold px-2 py-0.5 rounded">
                         {member.cg}
                       </span>
+                      {member.telegramHandle && (
+                        <span className="bg-slate-100 dark:bg-[#12121A] text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-white/10 font-mono text-xs font-semibold px-2 py-0.5 rounded">
+                          {member.telegramHandle}
+                        </span>
+                      )}
                       <span
                         className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded border ${
                           member.followUpStatus === 'finished'
@@ -516,6 +536,16 @@ export const AllMembersView: React.FC<AllMembersViewProps> = ({
                 {/* EXPANDED CONTENT */}
                 {isExpanded && (
                   <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5 space-y-4 animate-fadeIn">
+                    {/* Musical Background */}
+                    {member.notes && (
+                      <div className="p-3 bg-slate-50 dark:bg-[#12121A] border border-slate-200 dark:border-white/10 rounded-xl text-xs space-y-1">
+                        <div className="font-bold text-[10px] uppercase font-mono text-slate-400 dark:text-gray-400">
+                          Musical Background
+                        </div>
+                        <p className="text-slate-700 dark:text-gray-300 italic">{member.notes}</p>
+                      </div>
+                    )}
+
                     {/* Station Evaluations List */}
                     {allEvals.length === 0 ? (
                       <div className="py-2 text-center text-xs text-slate-400 dark:text-gray-500 italic font-mono">

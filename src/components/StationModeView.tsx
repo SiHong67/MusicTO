@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   Sparkles,
 } from 'lucide-react';
-import { Member, StationId, STATIONS, getEvaluationsList } from '../types';
+import { Member, StationId, STATIONS, getEvaluationsList, TrafficLightRating } from '../types';
 import { StationIcon, TrafficLightBadge } from './StationIcons';
 
 interface StationModeViewProps {
@@ -32,6 +32,7 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
 }) => {
   const station = STATIONS.find((s) => s.id === currentStationId) || STATIONS[0];
   const [activeTab, setActiveTab] = useState<'queue' | 'all'>('queue');
+  const [stationRatingFilter, setStationRatingFilter] = useState<'all' | TrafficLightRating>('all');
 
   // Candidates who checked into this station or have this station as current/primary
   const queueCandidates = members.filter(
@@ -41,6 +42,13 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
       Boolean(m.evaluations[currentStationId])
   );
 
+  const baseCandidates = activeTab === 'queue' ? queueCandidates : members;
+  const filteredCandidates = baseCandidates.filter((candidate) => {
+    if (stationRatingFilter === 'all') return true;
+    const currentStationEval = candidate.evaluations[currentStationId];
+    return currentStationEval?.trafficLight === stationRatingFilter;
+  });
+
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-4 sm:py-6 animate-fadeIn">
       {/* Station Selector Bar */}
@@ -49,9 +57,6 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
           <label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest font-mono">
             SELECT STATION
           </label>
-          <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-mono font-semibold">
-            {station.name.toUpperCase()} ACTIVE
-          </span>
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {STATIONS.map((s) => {
@@ -132,7 +137,7 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
       </div>
 
       {/* People List at this Station */}
-      <div className="flex items-center justify-between mb-3.5">
+      <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveTab('queue')}
@@ -165,8 +170,65 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
         </button>
       </div>
 
+      {/* Station Rating Filter */}
+      <div className="flex items-center gap-1.5 mb-3.5 flex-wrap">
+        <span className="text-[10px] font-mono uppercase font-bold text-slate-400 dark:text-gray-500 mr-1">
+          Rating:
+        </span>
+        <button
+          onClick={() => setStationRatingFilter('all')}
+          className={`px-2.5 py-1 rounded-lg text-xs font-mono uppercase tracking-wider transition-all border ${
+            stationRatingFilter === 'all'
+              ? 'bg-indigo-600 text-white border-indigo-500 font-bold shadow-xs'
+              : 'bg-white dark:bg-[#08080C] text-slate-600 dark:text-gray-400 border-slate-200 dark:border-white/10 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setStationRatingFilter(stationRatingFilter === 'green' ? 'all' : 'green')}
+          className={`px-2.5 py-1 rounded-lg text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 border ${
+            stationRatingFilter === 'green'
+              ? 'bg-green-100 dark:bg-green-950/80 text-green-700 dark:text-green-300 border-green-500 font-bold shadow-xs'
+              : 'bg-white dark:bg-[#08080C] text-slate-600 dark:text-gray-400 border-slate-200 dark:border-white/10 hover:border-green-300'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]" />
+          <span>Green</span>
+        </button>
+        <button
+          onClick={() => setStationRatingFilter(stationRatingFilter === 'yellow' ? 'all' : 'yellow')}
+          className={`px-2.5 py-1 rounded-lg text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 border ${
+            stationRatingFilter === 'yellow'
+              ? 'bg-amber-100 dark:bg-yellow-950/80 text-amber-700 dark:text-yellow-300 border-yellow-500 font-bold shadow-xs'
+              : 'bg-white dark:bg-[#08080C] text-slate-600 dark:text-gray-400 border-slate-200 dark:border-white/10 hover:border-amber-300'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_5px_#eab308]" />
+          <span>Yellow</span>
+        </button>
+        <button
+          onClick={() => setStationRatingFilter(stationRatingFilter === 'red' ? 'all' : 'red')}
+          className={`px-2.5 py-1 rounded-lg text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 border ${
+            stationRatingFilter === 'red'
+              ? 'bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-300 border-red-500 font-bold shadow-xs'
+              : 'bg-white dark:bg-[#08080C] text-slate-600 dark:text-gray-400 border-slate-200 dark:border-white/10 hover:border-red-300'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_5px_#ef4444]" />
+          <span>Red</span>
+        </button>
+      </div>
+
       <div className="space-y-3.5">
-        {(activeTab === 'queue' ? queueCandidates : members).map((candidate) => {
+        {filteredCandidates.length === 0 ? (
+          activeTab === 'queue' && queueCandidates.length === 0 ? null : (
+            <div className="p-8 text-center bg-white dark:bg-[#0F0F16] border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-mono text-slate-400 dark:text-gray-500">
+              No candidates with {stationRatingFilter !== 'all' ? `${stationRatingFilter.toUpperCase()} rating` : ''} at this station.
+            </div>
+          )
+        ) : (
+          filteredCandidates.map((candidate) => {
           const currentStationEval = candidate.evaluations[currentStationId];
           const candidateEvals = getEvaluationsList(candidate);
           const otherEvals = candidateEvals.filter(
@@ -189,6 +251,11 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
                     <span className="bg-slate-100 dark:bg-[#12121A] text-indigo-600 dark:text-indigo-300 border border-slate-200 dark:border-white/10 text-xs font-mono font-bold px-2 py-0.5 rounded">
                       {candidate.cg}
                     </span>
+                    {candidate.telegramHandle && (
+                      <span className="bg-slate-100 dark:bg-[#12121A] text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-white/10 text-xs font-mono font-semibold px-2 py-0.5 rounded">
+                        {candidate.telegramHandle}
+                      </span>
+                    )}
                     <span className="text-xs text-slate-500 dark:text-gray-400 font-mono">Age: {candidate.age}</span>
                     {candidate.currentStation === currentStationId && (
                       <span className="bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
@@ -199,16 +266,15 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
                   </div>
 
                   {/* Candidate background info from registration */}
-                  {(candidate.experienceLevel || candidate.phone || candidate.notes) && (
+                  {(candidate.experienceLevel || candidate.notes) && (
                     <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-gray-400 flex-wrap">
                       {candidate.experienceLevel && (
                         <span className="capitalize font-semibold text-indigo-600 dark:text-indigo-400">
                           {candidate.experienceLevel} level
                         </span>
                       )}
-                      {candidate.phone && <span>• Tel: {candidate.phone}</span>}
                       {candidate.notes && (
-                        <span className="italic truncate max-w-xs">• &ldquo;{candidate.notes}&rdquo;</span>
+                        <span className="italic truncate max-w-xs">• Musical background: &ldquo;{candidate.notes}&rdquo;</span>
                       )}
                     </div>
                   )}
@@ -293,8 +359,10 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
               )}
             </div>
           );
-        })}
-        {activeTab === 'queue' && queueCandidates.length === 0 && (
+        })
+      )}
+
+      {activeTab === 'queue' && queueCandidates.length === 0 && (
           <div className="text-center py-10 px-4 bg-white dark:bg-[#0F0F16] border border-dashed border-slate-200 dark:border-white/10 rounded-2xl space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
               <Users className="w-6 h-6" />

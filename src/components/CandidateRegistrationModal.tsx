@@ -19,6 +19,8 @@ export const CandidateRegistrationModal: React.FC<CandidateRegistrationModalProp
   const [name, setName] = useState('');
   const [age, setAge] = useState<string>('');
   const [cg, setCg] = useState('');
+  const [telegramHandle, setTelegramHandle] = useState('');
+  const [notes, setNotes] = useState('');
   const [followUpStatus, setFollowUpStatus] = useState<FollowUpStatus>('not_started');
   const [primaryStation, setPrimaryStation] = useState<StationId>('drums');
   const [submittedMember, setSubmittedMember] = useState<Member | null>(null);
@@ -30,11 +32,18 @@ export const CandidateRegistrationModal: React.FC<CandidateRegistrationModalProp
     if (!name.trim()) return;
 
     const parsedAge = parseInt(age, 10) || 20;
+    const cleanTelegram = telegramHandle.trim()
+      ? (telegramHandle.trim().startsWith('@') ? telegramHandle.trim() : `@${telegramHandle.trim()}`)
+      : undefined;
+
     const member: Member = {
       id: `mem-${Date.now()}`,
       name: name.trim(),
       age: parsedAge,
       cg: (cg.trim() || 'General').toUpperCase(),
+      telegramHandle: cleanTelegram,
+      phone: cleanTelegram,
+      notes: notes.trim() || undefined,
       followUpStatus,
       primaryStation,
       checkedInStations: [],
@@ -51,6 +60,8 @@ export const CandidateRegistrationModal: React.FC<CandidateRegistrationModalProp
     setName('');
     setAge('');
     setCg('');
+    setTelegramHandle('');
+    setNotes('');
     setFollowUpStatus('not_started');
     setSubmittedMember(null);
     onClose();
@@ -200,6 +211,36 @@ export const CandidateRegistrationModal: React.FC<CandidateRegistrationModalProp
                   className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1A1A24] border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-900 dark:text-white uppercase placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors font-mono"
                 />
               </div>
+            </div>
+
+            {/* Telegram Handle */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase font-mono tracking-widest mb-1.5">
+                Telegram Handle
+              </label>
+              <input
+                id="input-candidate-telegram"
+                type="text"
+                value={telegramHandle}
+                onChange={(e) => setTelegramHandle(e.target.value)}
+                placeholder="@handle"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1A1A24] border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors font-mono"
+              />
+            </div>
+
+            {/* Musical Background */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase font-mono tracking-widest mb-1.5">
+                Musical Background
+              </label>
+              <textarea
+                id="input-candidate-notes"
+                rows={2}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Share musical background..."
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1A1A24] border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+              />
             </div>
 
             {/* Follow-up Status */}
