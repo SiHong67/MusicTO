@@ -48,11 +48,22 @@ export interface Member {
   cg: string; // e.g., 'AZ1', 'V1', 'V2', 'V3'
   followUpStatus: FollowUpStatus;
   primaryStation?: StationId;
+  secondaryStations?: StationId[];
   checkedInStations: StationId[];
   currentStation?: StationId;
   registeredAt: string;
   evaluations: Partial<Record<StationId, StationEvaluation>>;
   videos?: PersonVideo[];
+  email?: string;
+  phone?: string;
+  experienceLevel?: 'beginner' | 'intermediate' | 'advanced';
+  notes?: string;
+}
+
+export interface StudentSession {
+  memberId: string;
+  name?: string;
+  registeredAt: string;
 }
 
 export const STATIONS: StationConfig[] = [

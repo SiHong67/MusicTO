@@ -6,9 +6,13 @@ import { StationIcon } from './StationIcons';
 
 interface StationQRCardProps {
   initialStationId?: string;
+  onOpenVenueQR?: () => void;
 }
 
-export const StationQRCard: React.FC<StationQRCardProps> = ({ initialStationId = 'drums' }) => {
+export const StationQRCard: React.FC<StationQRCardProps> = ({
+  initialStationId = 'drums',
+  onOpenVenueQR,
+}) => {
   const [selectedStationId, setSelectedStationId] = useState(initialStationId);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [isSaved, setIsSaved] = useState(false);
@@ -17,18 +21,11 @@ export const StationQRCard: React.FC<StationQRCardProps> = ({ initialStationId =
   const currentStation = STATIONS.find((s) => s.id === selectedStationId) || STATIONS[0];
 
   useEffect(() => {
-    // Generate QR payload containing station info and action
-    const qrPayload = JSON.stringify({
-      app: 'MusicTO',
-      type: 'STATION_CHECKIN',
-      stationId: currentStation.id,
-      stationName: currentStation.name,
-      code: currentStation.code,
-      url: `${window.location.origin}?station=${currentStation.id}`,
-    });
+    // Generate clean direct URL so phone cameras and in-app scanners immediately open station checkin
+    const stationUrl = `${window.location.origin}?station=${currentStation.id}`;
 
-    QRCode.toDataURL(qrPayload, {
-      width: 320,
+    QRCode.toDataURL(stationUrl, {
+      width: 340,
       margin: 2,
       color: {
         dark: '#0f172a',
@@ -152,6 +149,16 @@ export const StationQRCard: React.FC<StationQRCardProps> = ({ initialStationId =
           <Printer className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           <span>Print Station Signboard</span>
         </button>
+
+        {onOpenVenueQR && (
+          <button
+            id="btn-open-venue-qr"
+            onClick={onOpenVenueQR}
+            className="w-full py-2.5 px-4 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/70 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-mono uppercase font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <span>Show Venue Entry Registration QR</span>
+          </button>
+        )}
 
         <p className="text-[10px] text-slate-500 dark:text-gray-500 text-center font-mono uppercase tracking-wider">
           Scan this station sign to check in

@@ -1,7 +1,8 @@
-import { Member } from '../types';
+import { Member, StationId, StationEvaluation, StudentSession } from '../types';
 import { INITIAL_MEMBERS } from '../data/mockMembers';
 
 const STORAGE_KEY = 'musicto_tryouts_members_v1';
+const STUDENT_SESSION_KEY = 'musicto_student_session';
 const CHANNEL_NAME = 'musicto_tryouts_sync';
 
 let broadcastChannel: BroadcastChannel | null = null;
@@ -45,6 +46,113 @@ export function saveStoredMembers(members: Member[]): void {
   } catch (err) {
     console.error('Failed to save members to localStorage', err);
   }
+}
+
+// --- Student Session Persistence (Stores the registered student on their phone) ---
+export function getStoredStudentSession(): StudentSession | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(STUDENT_SESSION_KEY);
+    if (raw) {
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.error('Failed to read student session', err);
+  }
+  return null;
+}
+
+export function saveStoredStudentSession(session: StudentSession | null): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (session) {
+      localStorage.setItem(STUDENT_SESSION_KEY, JSON.stringify(session));
+    } else {
+      localStorage.removeItem(STUDENT_SESSION_KEY);
+    }
+  } catch (err) {
+    console.error('Failed to save student session', err);
+  }
+}
+
+export function clearStoredStudentSession(): void {
+  saveStoredStudentSession(null);
+}
+
+// --- Real-time Multi-Device Server Synchronization ---
+
+export async function fetchMembersFromServer(): Promise<Member[] | null> {
+  try {
+    const res = await fetch('/api/members');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.members)) {
+        saveStoredMembers(data.members);
+        return data.members;
+      }
+    }
+  } catch (err) {
+    // Silently fallback to local storage
+  }
+  return null;
+}
+
+export async function apiRegisterCandidate(member: Member): Promise<void> {
+  try {
+    await fetch('/api/members', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(member),
+    });
+  } catch (err) {
+    console.warn('Could not post candidate to server, local backup retained', err);
+  }
+}
+
+export async function apiCheckinStation(memberId: string, stationId: StationId): Promise<void> {
+  try {
+    await fetch(`/api/members/${memberId}/checkin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stationId }),
+    });
+  } catch (err) {
+    console.warn('Could not post check-in to server, local backup retained', err);
+  }
+}
+
+export async function apiSaveEvaluation(
+  memberId: string,
+  stationId: StationId,
+  evaluation: StationEvaluation
+): Promise<void> {
+  try {
+    await fetch(`/api/members/${memberId}/evaluation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stationId, evaluation }),
+    });
+  } catch (err) {
+    console.warn('Could not post evaluation to server, local backup retained', err);
+  }
+}
+
+export async function apiResetData(defaultMembers?: Member[]): Promise<Member[]> {
+  try {
+    const res = await fetch('/api/reset', { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.members)) {
+        saveStoredMembers(data.members);
+        return data.members;
+      }
+    }
+  } catch {
+    // fallback
+  }
+  const fallback = defaultMembers || INITIAL_MEMBERS;
+  saveStoredMembers(fallback);
+  return fallback;
 }
 
 export function subscribeToMemberUpdates(callback: (members: Member[]) => void): () => void {

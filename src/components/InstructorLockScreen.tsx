@@ -15,12 +15,14 @@ interface InstructorLockScreenProps {
   onUnlock: (department: StationId | 'general') => void;
   theme: ThemePreference;
   onToggleTheme: () => void;
+  onSwitchToStudent?: () => void;
 }
 
 export const InstructorLockScreen: React.FC<InstructorLockScreenProps> = ({
   onUnlock,
   theme,
   onToggleTheme,
+  onSwitchToStudent,
 }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -142,10 +144,26 @@ export const InstructorLockScreen: React.FC<InstructorLockScreenProps> = ({
               type="submit"
               className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(79,70,229,0.35)] border border-indigo-400/30 transition-all cursor-pointer"
             >
-              <span>Enter</span>
+              <span>Enter Staff Portal</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
+
+          {onSwitchToStudent && (
+            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 text-center">
+              <p className="text-xs text-slate-500 dark:text-gray-400 mb-2">
+                Here for Music Tryouts as a candidate?
+              </p>
+              <button
+                type="button"
+                id="btn-lockscreen-candidate-registration"
+                onClick={onSwitchToStudent}
+                className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-wider border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
+              >
+                Go to Student Registration
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

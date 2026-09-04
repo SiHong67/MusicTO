@@ -14,13 +14,15 @@ import {
 } from 'lucide-react';
 import { StationId, STATIONS, ThemePreference } from '../types';
 
-export type MainView = 'members' | 'station' | 'qrcards' | 'evaluation';
+export type MainView = 'members' | 'station' | 'qrcards' | 'evaluation' | 'student';
 
 interface HeaderNavigationProps {
   currentView: MainView;
   onChangeView: (view: MainView) => void;
   onOpenRegister: () => void;
   onOpenScanner: () => void;
+  onOpenVenueQR?: () => void;
+  onSwitchToStudentView?: () => void;
   activeStationId: StationId;
   onResetData: () => void;
   theme: ThemePreference;
@@ -34,6 +36,8 @@ export const HeaderNavigation: React.FC<HeaderNavigationProps> = ({
   onChangeView,
   onOpenRegister,
   onOpenScanner,
+  onOpenVenueQR,
+  onSwitchToStudentView,
   activeStationId,
   onResetData,
   theme,
@@ -137,6 +141,32 @@ export const HeaderNavigation: React.FC<HeaderNavigationProps> = ({
           >
             <Camera className="w-4 h-4" />
           </button>
+
+          {/* Venue Entry QR Code Modal trigger */}
+          {onOpenVenueQR && (
+            <button
+              id="nav-btn-venue-qr"
+              onClick={onOpenVenueQR}
+              title="Venue Entrance Registration QR (Students scan this to register)"
+              className="px-2.5 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold font-mono uppercase flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+            >
+              <QrCode className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span className="hidden md:inline">Venue QR</span>
+            </button>
+          )}
+
+          {/* Switch to Student Portal / Tryout Pass */}
+          {onSwitchToStudentView && (
+            <button
+              id="nav-btn-student-view"
+              onClick={onSwitchToStudentView}
+              title="Test Student Tryout View (Mark's Phone Experience)"
+              className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 dark:bg-[#12121A] dark:hover:bg-[#1A1A24] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300 text-xs font-mono font-medium flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+            >
+              <span className="hidden lg:inline">Student Pass</span>
+              <span className="lg:hidden">Pass</span>
+            </button>
+          )}
 
           {/* New Member Registration */}
           <button

@@ -18,6 +18,7 @@ interface StationModeViewProps {
   onEvaluateCandidate: (member: Member) => void;
   onOpenStationQR: (stationId: StationId) => void;
   onOpenScanner: () => void;
+  onOpenVenueQR?: () => void;
 }
 
 export const StationModeView: React.FC<StationModeViewProps> = ({
@@ -27,6 +28,7 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
   onEvaluateCandidate,
   onOpenStationQR,
   onOpenScanner,
+  onOpenVenueQR,
 }) => {
   const station = STATIONS.find((s) => s.id === currentStationId) || STATIONS[0];
   const [activeTab, setActiveTab] = useState<'queue' | 'all'>('queue');
@@ -106,11 +108,21 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
           </div>
 
           {/* Station Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {onOpenVenueQR && (
+              <button
+                id="btn-show-venue-qr-station-view"
+                onClick={onOpenVenueQR}
+                className="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-xs font-mono font-bold uppercase tracking-wider border border-indigo-200 dark:border-indigo-500/30 flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+              >
+                <span>Venue QR</span>
+              </button>
+            )}
+
             <button
               id="btn-show-station-qr-pass"
               onClick={() => onOpenStationQR(station.id)}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#12121A] dark:hover:bg-[#1A1A24] text-slate-700 dark:text-gray-200 text-xs font-mono font-bold uppercase tracking-wider border border-slate-200 dark:border-white/10 flex items-center gap-2 transition-all shadow-xs"
+              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#12121A] dark:hover:bg-[#1A1A24] text-slate-700 dark:text-gray-200 text-xs font-mono font-bold uppercase tracking-wider border border-slate-200 dark:border-white/10 flex items-center gap-2 transition-all shadow-xs cursor-pointer"
             >
               <QrCode className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Display Station QR</span>
@@ -178,7 +190,28 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
                       {candidate.cg}
                     </span>
                     <span className="text-xs text-slate-500 dark:text-gray-400 font-mono">Age: {candidate.age}</span>
+                    {candidate.currentStation === currentStationId && (
+                      <span className="bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        HERE AT STATION
+                      </span>
+                    )}
                   </div>
+
+                  {/* Candidate background info from registration */}
+                  {(candidate.experienceLevel || candidate.phone || candidate.notes) && (
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-gray-400 flex-wrap">
+                      {candidate.experienceLevel && (
+                        <span className="capitalize font-semibold text-indigo-600 dark:text-indigo-400">
+                          {candidate.experienceLevel} level
+                        </span>
+                      )}
+                      {candidate.phone && <span>• Tel: {candidate.phone}</span>}
+                      {candidate.notes && (
+                        <span className="italic truncate max-w-xs">• &ldquo;{candidate.notes}&rdquo;</span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Status at this station */}
                   <div className="flex items-center gap-2 pt-0.5">
@@ -261,6 +294,40 @@ export const StationModeView: React.FC<StationModeViewProps> = ({
             </div>
           );
         })}
+        {activeTab === 'queue' && queueCandidates.length === 0 && (
+          <div className="text-center py-10 px-4 bg-white dark:bg-[#0F0F16] border border-dashed border-slate-200 dark:border-white/10 rounded-2xl space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
+              <Users className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="font-bold text-sm text-slate-800 dark:text-gray-200 uppercase tracking-wide">
+                No candidates currently checked in at {station.name}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-gray-400 max-w-sm mx-auto mt-1">
+                When students like Mark scan the {station.name} Station QR code on their phones, their details will appear here automatically.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => onOpenStationQR(station.id)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer"
+              >
+                <QrCode className="w-4 h-4" />
+                <span>Show {station.name} Station QR</span>
+              </button>
+              {onOpenVenueQR && (
+                <button
+                  type="button"
+                  onClick={onOpenVenueQR}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300 text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  <span>Venue Entry QR</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
