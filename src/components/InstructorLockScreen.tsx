@@ -89,7 +89,7 @@ export const InstructorLockScreen: React.FC<InstructorLockScreenProps> = ({
               <Lock className="w-6 h-6" />
             </div>
             <h1 className="text-xl font-bold dark:text-white text-slate-900 tracking-tight uppercase">
-              Audition Portal
+              Music Tryouts
             </h1>
             <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">
               Enter instructor password to continue
